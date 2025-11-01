@@ -8,7 +8,7 @@ try:
 
     ## Import your app here
     from apps import app_menu, chat, config_manager, usb_debug, nametag, talks
-    from apps import userA, userB, userC, userD  ## An invitation
+    from apps import wifi_status, userB, userC, userD  ## An invitation (userA replaced by wifi_status)
 
 
 except Exception as ex:
@@ -26,9 +26,27 @@ async def main():
     print("Initializing main...")
     badge = Badge()
     badgenet.init(badge)
+
+    # Start WiFi connection in background (non-blocking)
+    async def start_wifi():
+        """Start WiFi connection with timeout, then begin monitoring"""
+        print("WiFi: Starting connection attempt...")
+        connected = await badge.wifi.connect()
+        if connected:
+            print("WiFi: Starting monitoring loop...")
+            await badge.wifi.monitor_loop()
+        else:
+            print("WiFi: Skipping - continuing without WiFi")
+
+    # Create WiFi task (runs in background, won't block boot)
+    wifi_task = aio.create_task(start_wifi())
+
+    # Create WiFi status app
+    wifi_app = wifi_status.WiFiStatusApp("WiFi", badge, badge.wifi)
+
     # Link them into the menu system here, for starters
     user_apps = [
-        userA.App("User A", badge),
+        wifi_app,  # WiFi status replaces User A
         userB.App("User B", badge),
         userC.App("User C", badge),
         userD.App("User D", badge),

@@ -7,6 +7,7 @@ from hardware.display import Display
 from hardware.keyboard import Keyboard
 from net.lora import LoraRadio
 from net.crypto import Crypto
+from net.wifi import WiFiManager
 
 
 badge_obj = None  # Singleton reference for use in the python shell for debugging
@@ -59,6 +60,14 @@ class Badge:
         self.keyboard: Keyboard = Keyboard()
 
         self.crypto = Crypto()
+
+        # Initialize WiFi manager (will be started by main.py)
+        self.wifi: WiFiManager = WiFiManager(
+            ssid="NYCR24",
+            password="clubmate",
+            connect_timeout_s=30,  # Reduced timeout to avoid blocking too long
+            ping_interval_s=15
+        )
 
         # Create task to run to check hardware, and update singleton reference
         self.task = aio.create_task(self.run())
